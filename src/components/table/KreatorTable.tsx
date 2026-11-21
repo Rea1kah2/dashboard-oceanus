@@ -86,9 +86,9 @@ export function KreatorTable({
               <tr
                 key={item.id_kreator}
                 onClick={() => onSelectKreator(item)}
-                className="hover:bg-ocean-800/50 cursor-pointer transition-colors group"
+                className="hover:bg-ocean-800/40 cursor-pointer transition-colors group"
               >
-                <td className="py-3 px-3 font-medium text-sand group-hover:text-signal transition-colors">
+                <td className="py-3 px-3 font-medium text-sand group-hover:text-signal/90 transition-colors">
                   <div>{item.nama}</div>
                   {item.nama_panggung && (
                     <div className="text-[10px] text-text-secondary italic">

@@ -45,7 +45,7 @@ export function GenreBarChart({
           {selectedGenre ? `Filter: ${selectedGenre}` : 'Klik bar untuk filter'}
         </span>
       </div>
-      <p className="text-xs text-text-secondary/80 mb-4">
+      <p className="text-xs text-text-secondary mb-4">
         Jumlah kreator berdasarkan genre musik utama.
       </p>
 
@@ -77,7 +77,7 @@ export function GenreBarChart({
                 if (active && payload && payload.length) {
                   const item = payload[0].payload as GenreDistribution;
                   return (
-                    <div className="p-2.5 rounded bg-ocean-950 border border-signal/30 text-xs font-mono shadow-xl">
+                    <div className="p-2.5 rounded bg-ocean-950 border border-ocean-700/80 text-xs font-mono shadow-xl">
                       <div className="text-sand font-bold mb-1">{item.genre}</div>
                       <div className="text-signal">
                         {item.count.toLocaleString('id-ID')} kreator ({item.percentage}%)
@@ -102,10 +102,10 @@ export function GenreBarChart({
                 return (
                   <Cell
                     key={`cell-${entry.genre}`}
-                    fill={isSelected ? '#38BDF8' : '#1B4F8A'}
-                    stroke={isSelected ? '#7DD3FC' : '#2A6BB8'}
-                    strokeWidth={isSelected ? 1.5 : 0}
-                    className="transition-all duration-200 hover:opacity-90"
+                    fill={isSelected ? '#2496BE' : '#1B4F8A'}
+                    stroke={isSelected ? '#38BDF8' : '#2A6BB8'}
+                    strokeWidth={isSelected ? 1 : 0}
+                    className="transition-all duration-200 hover:opacity-85"
                   />
                 );
               })}

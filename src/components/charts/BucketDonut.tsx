@@ -49,7 +49,7 @@ export function BucketDonut({
           {selectedBucket ? `Filter: ${selectedBucket}` : 'Klik untuk filter'}
         </span>
       </div>
-      <p className="text-xs text-text-secondary/80 mb-2">
+      <p className="text-xs text-text-secondary mb-2">
         Mayoritas (75.3%) kreator hanya merilis 1 karya musik.
       </p>
 
@@ -75,9 +75,9 @@ export function BucketDonut({
                     <Cell
                       key={`bucket-${entry.bucket}`}
                       fill={BUCKET_COLORS[entry.bucket] || '#38BDF8'}
-                      stroke={isSelected ? '#FFFFFF' : '#0A1628'}
-                      strokeWidth={isSelected ? 2 : 1}
-                      className="transition-all duration-200 hover:opacity-90"
+                      stroke={isSelected ? '#7DD3FC' : '#0A1628'}
+                      strokeWidth={isSelected ? 1.5 : 1}
+                      className="transition-all duration-200 hover:opacity-85"
                     />
                   );
                 })}
@@ -87,7 +87,7 @@ export function BucketDonut({
                   if (active && payload && payload.length) {
                     const item = payload[0].payload as BucketDistribution;
                     return (
-                      <div className="p-2 rounded bg-ocean-950 border border-signal/30 text-xs font-mono shadow-xl">
+                      <div className="p-2 rounded bg-ocean-950 border border-ocean-700/80 text-xs font-mono shadow-xl">
                         <div className="text-sand font-bold mb-1">
                           Bucket: {item.bucket} Karya
                         </div>
@@ -118,8 +118,8 @@ export function BucketDonut({
                 onClick={() => onSelectBucket(b.bucket)}
                 className={`flex items-center justify-between text-left px-2 py-1.5 rounded text-xs font-mono transition-all w-full cursor-pointer ${
                   isSelected
-                    ? 'bg-signal/20 text-white border border-signal/50'
-                    : 'text-text-secondary hover:bg-ocean-800'
+                    ? 'bg-signal/15 text-signal border border-signal/30'
+                    : 'text-text-secondary hover:bg-ocean-800/60'
                 }`}
               >
                 <div className="flex items-center gap-2">

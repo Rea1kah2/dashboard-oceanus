@@ -46,3 +46,11 @@
 - [x] 7.1 Siapkan `.gitignore` dan `README.md` komprehensif dengan panduan instalasi
 - [x] 7.2 Commit seluruh pekerjaan
 - [x] 7.3 Push ke remote repository `Rea1kah2/dashboard-oceanus`
+
+## Phase 8: Refinement Sesi 2 (Theme, UI Placement & Contrast)
+- [x] 8.1 Implementasi Light/Dark Mode dengan CSS tokens biru muda ocean-tinted `#EEF4FA` & transisi halus
+- [x] 8.2 Relokasi Search Bar & Reset Filter inline ke atas tabel (`TableSection.tsx`)
+- [x] 8.3 Pembersihan clutter untuk fokus presentasi (hapus badge "BI Analitik" & link GitHub di navbar dan footer)
+- [x] 8.4 Penyesuaian kontras hover & active state pada chart (`GenreBarChart`, `BucketDonut`, `TrendAreaChart`, `KreatorTable`)
+- [x] 8.5 Validasi build Next.js 15 sukses & push update ke GitHub
+

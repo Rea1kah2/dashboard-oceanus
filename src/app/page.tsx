@@ -20,6 +20,18 @@ import type {
 import { Waves, Sparkles } from 'lucide-react';
 
 export default function DashboardPage() {
+  const [isDark, setIsDark] = useState(true);
+
+  // Sync theme class to <html> element
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+    }
+  }, [isDark]);
+
   const {
     filters,
     setGenre,
@@ -116,16 +128,15 @@ export default function DashboardPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-ocean-950 flex flex-col font-sans">
+    <div className="min-h-screen bg-ocean-950 flex flex-col font-sans transition-colors duration-300">
       {/* Top Navbar */}
       <Navbar
-        search={filters.search}
-        onSearchChange={setSearch}
-        onResetAll={resetFilters}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark((prev) => !prev)}
       />
 
       {/* Hero Sub-Header */}
-      <div className="border-b border-ocean-900 bg-ocean-900/30">
+      <div className="border-b border-ocean-900 bg-ocean-900/30 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -143,7 +154,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-ocean-900/80 border border-ocean-800 text-right font-mono">
+              <div className="p-3 rounded-lg bg-ocean-900/80 border border-ocean-800 text-right font-mono transition-colors">
                 <div className="text-[10px] text-text-secondary uppercase">Status Data</div>
                 <div className="text-xs text-signal flex items-center gap-1.5 justify-end mt-0.5">
                   <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
@@ -185,6 +196,7 @@ export default function DashboardPage() {
           selectedGenre={filters.genre}
           selectedBucket={filters.bucket}
           search={filters.search}
+          onSearchChange={setSearch}
           sortCol={filters.sort}
           sortDir={filters.dir}
           onSort={setSorting}
@@ -205,22 +217,11 @@ export default function DashboardPage() {
       />
 
       {/* Footer */}
-      <footer className="border-t border-ocean-900 bg-ocean-950 py-6 mt-12 text-center text-xs font-mono text-text-muted">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="border-t border-ocean-900 bg-ocean-950 py-6 mt-12 text-center text-xs font-mono text-text-muted transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-2">
           <div className="flex items-center gap-2 text-text-secondary">
             <Waves className="w-4 h-4 text-signal" />
             <span>Dashboard Analisis Kreator Musik Oceanus • Semester 5 Business Intelligence</span>
-          </div>
-          <div>
-            Repository:{' '}
-            <a
-              href="https://github.com/Rea1kah2/dashboard-oceanus"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-signal hover:underline"
-            >
-              github.com/Rea1kah2/dashboard-oceanus
-            </a>
           </div>
         </div>
       </footer>
