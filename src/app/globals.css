@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #060E1B;
+  --foreground: #E2EAF2;
+  --ocean-950: #060E1B;
+  --ocean-900: #0A1628;
+  --ocean-850: #0C1B33;
+  --ocean-800: #0F2240;
+  --ocean-750: #122A4F;
+  --ocean-700: #152D55;
+  --ocean-600: #183E75;
+  --ocean-500: #1B4F8A;
+  --ocean-400: #2A6BB8;
+  --ocean-300: #3B82C4;
+  --signal: #38BDF8;
+  --signal-dim: #0EA5E9;
+  --coral: #F87171;
+  --sand: #E8D5B0;
+  --text-primary: #E2EAF2;
+  --text-secondary: #7A9BB5;
+  --text-muted: #4B6E8F;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #060E1B;
+}
+::-webkit-scrollbar-thumb {
+  background: #152D55;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #1B4F8A;
+}
+
+/* Subtle glow utility */
+.ocean-glow {
+  box-shadow: 0 0 20px -5px rgba(56, 189, 248, 0.15);
+}
+
+.card-border {
+  border: 1px solid rgba(27, 79, 138, 0.35);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-border:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
