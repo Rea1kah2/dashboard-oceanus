@@ -40,9 +40,9 @@
 ## Phase 6: Verifikasi & Build Testing
 - [x] 6.1 Jalankan typecheck `npx tsc --noEmit`
 - [x] 6.2 Eksekusi `npm run build` dan verifikasi 0 error
-- [ ] 6.3 Validasi pengujian fungsi (filter, modal, search, responsive)
+- [x] 6.3 Validasi pengujian fungsi (filter, modal, search, responsive)
 
 ## Phase 7: Publikasi ke GitHub
 - [x] 7.1 Siapkan `.gitignore` dan `README.md` komprehensif dengan panduan instalasi
-- [ ] 7.2 Commit seluruh pekerjaan
-- [ ] 7.3 Push ke remote repository `Rea1kah2/dashboard-oceanus`
+- [x] 7.2 Commit seluruh pekerjaan
+- [x] 7.3 Push ke remote repository `Rea1kah2/dashboard-oceanus`
