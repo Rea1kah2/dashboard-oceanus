@@ -1,93 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import type { PaginatedKreatorResponse, Kreator } from '@/lib/types';
+import {
+  buildKreatorWhereClause,
+  parseSafeInt,
+  resolveSort,
+  STATIC_CACHE_HEADERS,
+} from '@/lib/queries';
+import type { Kreator, PaginatedKreatorResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-    const limit = Math.min(100, Math.max(10, parseInt(searchParams.get('limit') || '20', 10)));
-    const genre = searchParams.get('genre') || '';
-    const bucket = searchParams.get('bucket') || '';
-    const peran = searchParams.get('peran') || '';
-    const search = searchParams.get('search') || '';
-    const sort = searchParams.get('sort') || 'total_karya';
-    const dir = (searchParams.get('dir') || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
+    const page = parseSafeInt(searchParams.get('page'), 1, 1, 10000);
+    const limit = parseSafeInt(searchParams.get('limit'), 20, 10, 100);
+    const { sortCol, sortDir } = resolveSort(
+      searchParams.get('sort'),
+      searchParams.get('dir')
+    );
 
-    const allowedSortCols: Record<string, string> = {
-      nama: 'nama',
-      genre_utama: 'genre_utama',
-      total_karya: 'total_karya',
-      karya_notable: 'karya_notable',
-      pengaruh_diterima: 'pengaruh_diterima',
-      karya_dirujuk: 'karya_dirujuk',
-      thn_pertama: 'thn_pertama',
-      n_peran: 'n_peran',
-    };
-
-    const sortCol = allowedSortCols[sort] || 'total_karya';
-
-    const conditions: string[] = [];
-    const params: (string | number)[] = [];
-
-    if (genre) {
-      conditions.push('genre_utama = ?');
-      params.push(genre);
-    }
-
-    if (bucket) {
-      conditions.push('bucket_karya = ?');
-      params.push(bucket);
-    }
-
-    if (peran) {
-      const pNum = parseInt(peran, 10);
-      if (!isNaN(pNum)) {
-        conditions.push('n_peran = ?');
-        params.push(pNum);
-      }
-    }
-
-    if (search) {
-      conditions.push('(nama LIKE ? OR nama_panggung LIKE ?)');
-      params.push(`%${search}%`, `%${search}%`);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const { whereClause, sqlParams } = buildKreatorWhereClause({
+      genre: searchParams.get('genre') || '',
+      bucket: searchParams.get('bucket') || '',
+      peran: searchParams.get('peran') || '',
+      search: searchParams.get('search') || '',
+    });
 
     const db = getDb();
 
-    // Hitung total
     const countQuery = `SELECT COUNT(*) as total FROM kreator ${whereClause}`;
-    const countRow = db.prepare(countQuery).get(...params) as { total: number };
+    const countRow = db.prepare(countQuery).get(...sqlParams) as { total: number };
     const total = countRow.total || 0;
-    const pages = Math.ceil(total / limit);
+    const pages = total > 0 ? Math.ceil(total / limit) : 0;
+    const safePage = pages > 0 ? Math.min(page, pages) : 1;
 
-    // Ambil data paginasi
-    const offset = (page - 1) * limit;
+    const offset = (safePage - 1) * limit;
     const dataQuery = `
       SELECT *
       FROM kreator
       ${whereClause}
-      ORDER BY ${sortCol} ${dir}
+      ORDER BY ${sortCol} ${sortDir}, id_kreator ASC
       LIMIT ? OFFSET ?
     `;
 
-    const data = db.prepare(dataQuery).all(...params, limit, offset) as Kreator[];
+    const data = db.prepare(dataQuery).all(...sqlParams, limit, offset) as Kreator[];
 
     const response: PaginatedKreatorResponse = {
       data,
       total,
-      page,
+      page: safePage,
       limit,
       pages,
     };
 
-    return NextResponse.json(response);
-  } catch (err: any) {
+    return NextResponse.json(response, { headers: STATIC_CACHE_HEADERS });
+  } catch (err: unknown) {
     console.error('Error in /api/kreator:', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Gagal memuat daftar kreator.' },
+      { status: 500 }
+    );
   }
 }

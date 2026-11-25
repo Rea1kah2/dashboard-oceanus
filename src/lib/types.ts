@@ -19,6 +19,12 @@ export interface Kreator {
   bucket_karya: string;
 }
 
+export interface BucketDistribution {
+  bucket: string;
+  count: number;
+  percentage: number;
+}
+
 export interface StatsResponse {
   total_kreator: number;
   avg_total_karya: number;
@@ -28,7 +34,9 @@ export interface StatsResponse {
   thn_pertama_min: number;
   thn_terakhir_max: number;
   dekade_puncak: string;
+  dekade_puncak_count: number;
   total_karya_all: number;
+  buckets: BucketDistribution[];
 }
 
 export interface GenreDistribution {
@@ -52,24 +60,7 @@ export interface RoleDistribution {
   total_kreator: number;
 }
 
-export interface BucketDistribution {
-  bucket: string;
-  count: number;
-  percentage: number;
-}
-
-export interface LeaderboardKreator {
-  id_kreator: number;
-  nama: string;
-  nama_panggung: string;
-  genre_utama: string;
-  total_karya: number;
-  karya_notable: number;
-  pengaruh_diterima: number;
-  karya_dirujuk: number;
-  thn_pertama: number;
-  thn_terakhir: number;
-}
+export type LeaderboardKreator = Kreator;
 
 export interface PaginatedKreatorResponse {
   data: Kreator[];
@@ -82,8 +73,10 @@ export interface PaginatedKreatorResponse {
 export interface FilterState {
   genre: string;
   bucket: string;
+  peran: string;
   search: string;
   sort: string;
   dir: 'asc' | 'desc';
   page: number;
+  limit: number;
 }

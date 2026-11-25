@@ -24,12 +24,17 @@
   --coral: 248 113 113;     /* #F87171 */
   --sand: 232 213 176;      /* #E8D5B0 */
 
+  --metric-notable: 252 211 77;  /* #FCD34D */
+  --metric-cited: 110 231 183;   /* #6EE7B7 */
+  --metric-indigo: 165 180 252;  /* #A5B4FC */
+  --metric-silver: 203 213 225;  /* #CBD5E1 */
+
   --text-primary: 226 234 242;   /* #E2EAF2 */
   --text-secondary: 122 155 181; /* #7A9BB5 */
   --text-muted: 75 110 143;      /* #4B6E8F */
 }
 
-/* Light mode tokens (Opsi B: Biru muda ocean-tinted) */
+/* Light mode tokens (Biru muda ocean-tinted dengan kontras tinggi WCAG AA) */
 html.light {
   --background: #EEF4FA;
   --foreground: #0C1E35;
@@ -51,6 +56,11 @@ html.light {
 
   --coral: 192 57 43;       /* #C0392B */
   --sand: 139 105 20;       /* #8B6914 */
+
+  --metric-notable: 180 83 9;    /* #B45309 */
+  --metric-cited: 4 120 87;      /* #047857 */
+  --metric-indigo: 67 56 202;    /* #4338CA */
+  --metric-silver: 71 85 105;    /* #475569 */
 
   --text-primary: 12 30 53;    /* #0C1E35 */
   --text-secondary: 46 82 114; /* #2E5272 */
@@ -111,4 +121,30 @@ html.light .card-border {
 
 html.light .card-border:hover {
   border-color: rgb(var(--signal) / 0.5);
+}
+
+/* Modal fade-in animation */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-enter {
+  animation: modalFadeIn 0.18s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body,
+  .card-border,
+  .modal-enter,
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

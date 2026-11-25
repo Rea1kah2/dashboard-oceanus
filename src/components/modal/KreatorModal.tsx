@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import type { Kreator } from '@/lib/types';
-import { X, Music, Calendar, Disc, Share2, Layers, Users } from 'lucide-react';
+import { X, Calendar, Disc, Share2, Layers, Users } from 'lucide-react';
 
 interface KreatorModalProps {
   kreator: Kreator | null;
@@ -22,28 +22,32 @@ export function KreatorModal({ kreator, onClose }: KreatorModalProps) {
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [kreator, onClose]);
 
   if (!kreator) return null;
 
-  const totalRoles =
-    kreator.n_performer + kreator.n_komposer + kreator.n_lirik + kreator.n_produser || 1;
+  const nPerformer = Number(kreator.n_performer ?? 0);
+  const nKomposer = Number(kreator.n_komposer ?? 0);
+  const nLirik = Number(kreator.n_lirik ?? 0);
+  const nProduser = Number(kreator.n_produser ?? 0);
+  const totalRoles = nPerformer + nKomposer + nLirik + nProduser || 1;
 
   const roles = [
-    { name: 'Performer', count: kreator.n_performer, color: 'bg-sky-400' },
-    { name: 'Komposer', count: kreator.n_komposer, color: 'bg-indigo-400' },
-    { name: 'Lirik', count: kreator.n_lirik, color: 'bg-emerald-400' },
-    { name: 'Produser', count: kreator.n_produser, color: 'bg-coral' },
+    { name: 'Performer', count: nPerformer, color: 'bg-signal' },
+    { name: 'Komposer', count: nKomposer, color: 'bg-metric-indigo' },
+    { name: 'Lirik', count: nLirik, color: 'bg-metric-cited' },
+    { name: 'Produser', count: nProduser, color: 'bg-coral' },
   ];
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ocean-950/80 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-ocean-950/80 backdrop-blur-sm p-0 sm:p-4 modal-enter"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
+      aria-labelledby="kreator-modal-title"
     >
       <div
         className="w-full sm:max-w-xl max-h-[90vh] overflow-y-auto bg-ocean-900 border border-ocean-700/80 rounded-t-2xl sm:rounded-xl shadow-2xl p-5 sm:p-6 card-border text-left"
@@ -60,13 +64,15 @@ export function KreatorModal({ kreator, onClose }: KreatorModalProps) {
                 ID #{kreator.id_kreator}
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-ocean-800 text-text-secondary border border-ocean-700">
-                Bucket {kreator.bucket_karya}
+                Bucket {kreator.bucket_karya || '0'}
               </span>
             </div>
-            <h2 className="text-2xl font-serif text-sand">{kreator.nama}</h2>
+            <h2 id="kreator-modal-title" className="text-2xl font-serif text-sand">
+              {kreator.nama}
+            </h2>
             {kreator.nama_panggung && (
               <p className="text-xs text-text-secondary italic">
-                Dikenal sebagai: "{kreator.nama_panggung}"
+                Dikenal sebagai: &quot;{kreator.nama_panggung}&quot;
               </p>
             )}
             <p className="text-xs text-signal font-medium mt-1">
@@ -77,7 +83,7 @@ export function KreatorModal({ kreator, onClose }: KreatorModalProps) {
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-ocean-800 transition-colors"
+            className="p-2 rounded-md text-text-secondary hover:text-text-primary hover:bg-ocean-800 transition-colors cursor-pointer min-w-[36px] min-h-[36px] flex items-center justify-center"
             aria-label="Tutup modal"
           >
             <X className="w-5 h-5" />
@@ -88,19 +94,25 @@ export function KreatorModal({ kreator, onClose }: KreatorModalProps) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
           <div className="p-3 rounded bg-ocean-950 border border-ocean-800 text-center">
             <div className="text-[10px] font-mono text-text-secondary uppercase">Total Karya</div>
-            <div className="text-2xl font-serif text-sand mt-0.5">{kreator.total_karya}</div>
+            <div className="text-2xl font-serif text-sand mt-0.5">{kreator.total_karya ?? 0}</div>
           </div>
           <div className="p-3 rounded bg-ocean-950 border border-ocean-800 text-center">
             <div className="text-[10px] font-mono text-text-secondary uppercase">Notable</div>
-            <div className="text-2xl font-serif text-amber-300 mt-0.5">{kreator.karya_notable}</div>
+            <div className="text-2xl font-serif text-metric-notable mt-0.5">
+              {kreator.karya_notable ?? 0}
+            </div>
           </div>
           <div className="p-3 rounded bg-ocean-950 border border-ocean-800 text-center">
             <div className="text-[10px] font-mono text-text-secondary uppercase">Pengaruh</div>
-            <div className="text-2xl font-serif text-signal mt-0.5">{kreator.pengaruh_diterima}</div>
+            <div className="text-2xl font-serif text-signal mt-0.5">
+              {kreator.pengaruh_diterima ?? 0}
+            </div>
           </div>
           <div className="p-3 rounded bg-ocean-950 border border-ocean-800 text-center">
             <div className="text-[10px] font-mono text-text-secondary uppercase">Dirujuk</div>
-            <div className="text-2xl font-serif text-emerald-300 mt-0.5">{kreator.karya_dirujuk}</div>
+            <div className="text-2xl font-serif text-metric-cited mt-0.5">
+              {kreator.karya_dirujuk ?? 0}
+            </div>
           </div>
         </div>
 
@@ -136,7 +148,7 @@ export function KreatorModal({ kreator, onClose }: KreatorModalProps) {
         {/* Additional metadata */}
         <div className="grid grid-cols-2 gap-3 text-xs font-sans border-t border-ocean-800 pt-4">
           <div className="flex items-center gap-2 text-text-secondary">
-            <Calendar className="w-4 h-4 text-signal/80" />
+            <Calendar className="w-4 h-4 text-signal/80 shrink-0" />
             <span>
               Tahun Aktif:{' '}
               <strong className="text-sand font-mono">
@@ -145,24 +157,24 @@ export function KreatorModal({ kreator, onClose }: KreatorModalProps) {
             </span>
           </div>
           <div className="flex items-center gap-2 text-text-secondary">
-            <Users className="w-4 h-4 text-signal/80" />
+            <Users className="w-4 h-4 text-signal/80 shrink-0" />
             <span>
               Grup Musik:{' '}
-              <strong className="text-sand font-mono">{kreator.n_grup} grup</strong>
+              <strong className="text-sand font-mono">{kreator.n_grup ?? 0} grup</strong>
             </span>
           </div>
           <div className="flex items-center gap-2 text-text-secondary">
-            <Disc className="w-4 h-4 text-signal/80" />
+            <Disc className="w-4 h-4 text-signal/80 shrink-0" />
             <span>
               Total Genre:{' '}
-              <strong className="text-sand font-mono">{kreator.n_genre} genre</strong>
+              <strong className="text-sand font-mono">{kreator.n_genre ?? 0} genre</strong>
             </span>
           </div>
           <div className="flex items-center gap-2 text-text-secondary">
-            <Share2 className="w-4 h-4 text-signal/80" />
+            <Share2 className="w-4 h-4 text-signal/80 shrink-0" />
             <span>
               Variasi Peran:{' '}
-              <strong className="text-sand font-mono">{kreator.n_peran} jenis</strong>
+              <strong className="text-sand font-mono">{kreator.n_peran ?? 0} jenis</strong>
             </span>
           </div>
         </div>

@@ -16,6 +16,7 @@ interface GenreBarChartProps {
   data: GenreDistribution[];
   selectedGenre: string;
   onSelectGenre: (genre: string) => void;
+  isDark: boolean;
   loading?: boolean;
 }
 
@@ -23,30 +24,36 @@ export function GenreBarChart({
   data,
   selectedGenre,
   onSelectGenre,
+  isDark,
   loading = false,
 }: GenreBarChartProps) {
   if (loading) {
     return <div className="h-72 rounded bg-ocean-900/40 animate-pulse card-border" />;
   }
 
-  // Ambil top 12 untuk keterbacaan chart yang tajam
   const displayData = data.slice(0, 12);
+  const axisTickColor = isDark ? '#7A9BB5' : '#2E5272';
+  const axisNumberColor = isDark ? '#6488A6' : '#4B6E8F';
+  const axisLineColor = isDark ? '#152D55' : '#CBD8E8';
+  const barBaseFill = isDark ? '#1B4F8A' : '#3B82C4';
+  const barActiveFill = isDark ? '#2496BE' : '#0284C7';
+  const barActiveStroke = isDark ? '#38BDF8' : '#0369A1';
 
   return (
     <div className="p-4 sm:p-5 rounded-lg card-border bg-ocean-900/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between gap-2 mb-1">
         <h3 className="font-serif text-base text-sand flex items-center gap-2">
           <span>Distribusi Genre Teratas</span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-ocean-800 text-signal border border-signal/20">
             Top 12
           </span>
         </h3>
-        <span className="text-[11px] font-mono text-text-secondary">
+        <span className="text-[11px] font-mono text-text-secondary truncate max-w-[160px]">
           {selectedGenre ? `Filter: ${selectedGenre}` : 'Klik bar untuk filter'}
         </span>
       </div>
       <p className="text-xs text-text-secondary mb-4">
-        Jumlah kreator berdasarkan genre musik utama.
+        Jumlah kreator berdasarkan genre musik utama (dari total {data.length || 27} genre).
       </p>
 
       <div className="h-64 sm:h-72 w-full">
@@ -58,21 +65,22 @@ export function GenreBarChart({
           >
             <XAxis
               type="number"
-              stroke="#4B6E8F"
+              stroke={axisNumberColor}
               fontSize={11}
               tickLine={false}
-              axisLine={{ stroke: '#152D55' }}
+              axisLine={{ stroke: axisLineColor }}
             />
             <YAxis
               type="category"
               dataKey="genre"
-              stroke="#7A9BB5"
+              stroke={axisTickColor}
               fontSize={11}
               tickLine={false}
-              axisLine={{ stroke: '#152D55' }}
-              width={100}
+              axisLine={{ stroke: axisLineColor }}
+              width={108}
             />
             <Tooltip
+              cursor={{ fill: isDark ? 'rgba(56, 189, 248, 0.08)' : 'rgba(2, 132, 199, 0.08)' }}
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
                   const item = payload[0].payload as GenreDistribution;
@@ -95,16 +103,20 @@ export function GenreBarChart({
               dataKey="count"
               radius={[0, 4, 4, 0]}
               cursor="pointer"
-              onClick={(entry) => onSelectGenre(entry.genre)}
+              onClick={(entry) => {
+                if (entry?.genre) {
+                  onSelectGenre(String(entry.genre));
+                }
+              }}
             >
               {displayData.map((entry) => {
                 const isSelected = selectedGenre === entry.genre;
                 return (
                   <Cell
                     key={`cell-${entry.genre}`}
-                    fill={isSelected ? '#2496BE' : '#1B4F8A'}
-                    stroke={isSelected ? '#38BDF8' : '#2A6BB8'}
-                    strokeWidth={isSelected ? 1 : 0}
+                    fill={isSelected ? barActiveFill : barBaseFill}
+                    stroke={isSelected ? barActiveStroke : 'transparent'}
+                    strokeWidth={isSelected ? 1.5 : 0}
                     className="transition-all duration-200 hover:opacity-85"
                   />
                 );

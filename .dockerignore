@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+.gitignore
+.kiro
+.env
+.env*.local
+tests
+RENCANA.md
+README.md
+*.xlsx
+data/*.xlsx
+data/*.db-wal
+data/*.db-shm
+.DS_Store
+Thumbs.db
+npm-debug.log*

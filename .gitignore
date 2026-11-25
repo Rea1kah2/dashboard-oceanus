@@ -29,6 +29,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# SQLite temporary WAL/SHM files
+data/*.db-wal
+data/*.db-shm
+
 # OS files
 .DS_Store
 Thumbs.db

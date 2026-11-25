@@ -11,46 +11,61 @@ import {
 import type { BucketDistribution } from '@/lib/types';
 
 interface BucketDonutProps {
+  data: BucketDistribution[];
   selectedBucket: string;
   onSelectBucket: (bucket: string) => void;
+  isDark: boolean;
   loading?: boolean;
 }
 
-const BUCKET_DATA: BucketDistribution[] = [
-  { bucket: '1', count: 8558, percentage: 75.3 },
-  { bucket: '2-3', count: 2204, percentage: 19.4 },
-  { bucket: '4-9', count: 531, percentage: 4.7 },
-  { bucket: '10+', count: 65, percentage: 0.6 },
-  { bucket: '0', count: 3, percentage: 0.03 },
-];
-
-const BUCKET_COLORS: Record<string, string> = {
+const DARK_BUCKET_COLORS: Record<string, string> = {
   '1': '#1B4F8A',
   '2-3': '#38BDF8',
   '4-9': '#818CF8',
   '10+': '#E8D5B0',
-  '0': '#0F2240',
+  '0': '#475569',
+};
+
+const LIGHT_BUCKET_COLORS: Record<string, string> = {
+  '1': '#1D4ED8',
+  '2-3': '#0284C7',
+  '4-9': '#4F46E5',
+  '10+': '#B45309',
+  '0': '#64748B',
 };
 
 export function BucketDonut({
+  data,
   selectedBucket,
   onSelectBucket,
+  isDark,
   loading = false,
 }: BucketDonutProps) {
   if (loading) {
     return <div className="h-72 rounded bg-ocean-900/40 animate-pulse card-border" />;
   }
 
+  const bucketColors = isDark ? DARK_BUCKET_COLORS : LIGHT_BUCKET_COLORS;
+  const defaultStroke = isDark ? '#0A1628' : '#FFFFFF';
+  const activeStroke = isDark ? '#7DD3FC' : '#0369A1';
+
+  const topBucket = data.reduce<BucketDistribution | null>(
+    (best, item) => (!best || item.count > best.count ? item : best),
+    null
+  );
+
   return (
     <div className="p-4 sm:p-5 rounded-lg card-border bg-ocean-900/80 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center justify-between gap-2 mb-1">
         <h3 className="font-serif text-base text-sand">Segmentasi Produktivitas Karya</h3>
         <span className="text-[11px] font-mono text-text-secondary">
           {selectedBucket ? `Filter: ${selectedBucket}` : 'Klik untuk filter'}
         </span>
       </div>
       <p className="text-xs text-text-secondary mb-2">
-        Mayoritas (75.3%) kreator hanya merilis 1 karya musik.
+        {topBucket
+          ? `Mayoritas (${topBucket.percentage}%) kreator berada pada bucket ${topBucket.bucket} karya musik.`
+          : 'Distribusi kreator berdasarkan jumlah karya yang dirilis.'}
       </p>
 
       <div className="h-64 sm:h-72 w-full flex flex-col sm:flex-row items-center justify-between">
@@ -58,7 +73,7 @@ export function BucketDonut({
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={BUCKET_DATA}
+                data={data}
                 dataKey="count"
                 nameKey="bucket"
                 cx="50%"
@@ -67,16 +82,20 @@ export function BucketDonut({
                 outerRadius={75}
                 paddingAngle={2}
                 cursor="pointer"
-                onClick={(entry) => onSelectBucket(entry.bucket)}
+                onClick={(entry) => {
+                  if (entry?.bucket !== undefined) {
+                    onSelectBucket(String(entry.bucket));
+                  }
+                }}
               >
-                {BUCKET_DATA.map((entry) => {
+                {data.map((entry) => {
                   const isSelected = selectedBucket === entry.bucket;
                   return (
                     <Cell
                       key={`bucket-${entry.bucket}`}
-                      fill={BUCKET_COLORS[entry.bucket] || '#38BDF8'}
-                      stroke={isSelected ? '#7DD3FC' : '#0A1628'}
-                      strokeWidth={isSelected ? 1.5 : 1}
+                      fill={bucketColors[entry.bucket] || '#38BDF8'}
+                      stroke={isSelected ? activeStroke : defaultStroke}
+                      strokeWidth={isSelected ? 2 : 1}
                       className="transition-all duration-200 hover:opacity-85"
                     />
                   );
@@ -108,24 +127,24 @@ export function BucketDonut({
         </div>
 
         {/* Legend */}
-        <div className="w-full sm:w-2/5 flex flex-wrap sm:flex-col gap-2 justify-center px-2">
-          {BUCKET_DATA.map((b) => {
+        <div className="w-full sm:w-2/5 flex flex-wrap sm:flex-col gap-1.5 justify-center px-2">
+          {data.map((b) => {
             const isSelected = selectedBucket === b.bucket;
             return (
               <button
                 type="button"
                 key={b.bucket}
                 onClick={() => onSelectBucket(b.bucket)}
-                className={`flex items-center justify-between text-left px-2 py-1.5 rounded text-xs font-mono transition-all w-full cursor-pointer ${
+                className={`flex items-center justify-between text-left px-2.5 py-1.5 rounded text-xs font-mono transition-all w-[48%] sm:w-full cursor-pointer border ${
                   isSelected
-                    ? 'bg-signal/15 text-signal border border-signal/30'
-                    : 'text-text-secondary hover:bg-ocean-800/60'
+                    ? 'bg-signal/15 text-signal border-signal/35'
+                    : 'text-text-secondary border-transparent hover:bg-ocean-800/60'
                 }`}
               >
                 <div className="flex items-center gap-2">
                   <span
-                    className="w-2.5 h-2.5 rounded-full inline-block"
-                    style={{ backgroundColor: BUCKET_COLORS[b.bucket] }}
+                    className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                    style={{ backgroundColor: bucketColors[b.bucket] || '#38BDF8' }}
                   />
                   <span>{b.bucket} Karya</span>
                 </div>

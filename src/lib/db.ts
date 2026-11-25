@@ -1,16 +1,17 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 
-let dbInstance: Database.Database | null = null;
+const globalForDb = globalThis as unknown as {
+  __oceanusDb?: Database.Database;
+};
 
 export function getDb(): Database.Database {
-  if (!dbInstance) {
+  if (!globalForDb.__oceanusDb || !globalForDb.__oceanusDb.open) {
     const dbPath = path.resolve(process.cwd(), 'data', 'oceanus.db');
-    dbInstance = new Database(dbPath, {
+    globalForDb.__oceanusDb = new Database(dbPath, {
       readonly: true,
       fileMustExist: true,
     });
-    dbInstance.pragma('journal_mode = WAL');
   }
-  return dbInstance;
+  return globalForDb.__oceanusDb;
 }

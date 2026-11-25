@@ -1,12 +1,13 @@
 # 🌊 Dashboard Oceanus — Analisis Kreator Musik
 
-> Dashboard Analitik Business Intelligence untuk eksplorasi dan visualisasi 11.361 data kreator musik di dunia *Oceanus* (kurun waktu 1975–2040). Dibangun dengan metodologi **Spec-Driven Development (Kiro)**, arsitektur Next.js 15, basis data tertanam SQLite, dan sistem desain visual **"Laut & Suara"** (*deep ocean theme*).
+> Dashboard Analitik Business Intelligence untuk eksplorasi dan visualisasi 11.361 data kreator musik di dunia *Oceanus* (kurun waktu 1975–2040). Dibangun dengan metodologi **Spec-Driven Development (Kiro)**, arsitektur Next.js 15 (`standalone`), basis data tertanam SQLite read-only, sistem desain visual **"Laut & Suara"** (Dark & Light Mode), dan siap deploy via Docker ke **Render**.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite)](https://www.sqlite.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://www.docker.com/)
 
 ---
 
@@ -14,36 +15,42 @@
 - [Latar Belakang & Insight](#-latar-belakang--insight)
 - [Fitur Utama](#-fitur-utama)
 - [Arsitektur Sistem](#-arsitektur-sistem)
-- [Sistem Desain Visual](#-sistem-desain-visual)
 - [Panduan Instalasi & Menjalankan Lokal](#-panduan-instalasi--menjalankan-lokal)
+- [Panduan Deployment ke Render](#-panduan-deployment-ke-render)
+- [Pengujian & Validasi](#-pengujian--validasi)
 - [Struktur Direktori](#-struktur-direktori)
-- [Metodologi Spec-Driven (Kiro)](#-metodologi-spec-driven-kiro)
 
 ---
 
 ## 🔍 Latar Belakang & Insight
 
-Proyek ini dikembangkan sebagai pemenuhan tugas mata kuliah **Business Intelligence (Semester 5)** dengan menganalisis dataset `Analisis Kreator Musik Oceanus.xlsx` yang memuat 11.361 catatan profil musisi, komposer, produser, dan penulis lirik.
+Proyek ini menganalisis dataset `data/Analisis Kreator Musik Oceanus.xlsx` yang memuat **11.361 profil** musisi, komposer, produser, dan penulis lirik di ekosistem *Oceanus*.
 
 ### Temuan Analitik Utama:
 1. **Dominasi Absolut Dream Pop**: Dari 27 genre unik, Dream Pop memimpin dengan 2.535 kreator (22,3%), diikuti Indie Folk (1.234) dan Doom Metal (1.051).
-2. **Karakteristik "One-Hit Wonder"**: Sebanyak 75,3% (8.558 kreator) tercatat hanya merilis 1 karya musik (Bucket `1`), sementara kreator elit dengan 10+ karya hanya berjumlah 65 orang (0,57%).
-3. **Ledakan Era Digital 2020-an**: Kurva tren menunjukkan lonjakan eksponensial musisi baru pada dekade 2020-an (6.160 kreator), mencerminkan era demokratisasi produksi musik digital di Oceanus.
-4. **Spesialisasi Peran Tunggal**: Sebanyak 63,5% musisi hanya menjalankan 1 peran spesifik (antara performer, komposer, lirik, atau produser).
+2. **Karakteristik "One-Hit Wonder"**: Sebanyak 75,3% (8.558 kreator) tercatat merilis 1 karya musik (Bucket `1`), sementara kreator elit dengan 10+ karya hanya berjumlah 65 orang (0,57%).
+3. **Ledakan Era Digital 2020-an**: Kurva tren menunjukkan lonjakan eksponensial musisi baru pada dekade 2020-an (6.160 kreator / 54,2%), mencerminkan demokratisasi produksi musik digital di Oceanus.
+4. **Spesialisasi Peran Tunggal**: Sebanyak 63,5% (7.221 musisi) menjalankan 1 peran spesifik, sementara hanya 81 musisi yang menguasai keempat peran sekaligus.
 
 ---
 
 ## 🚀 Fitur Utama
 
-- **Key Performance Indicators (KPIs)**: Kartu metrik total kreator, genre #1, era puncak, dan persentase musisi elit.
-- **Distribusi Genre Interaktif**: Grafik batang horizontal 12 genre terpopuler. Mengklik salah satu bar otomatis memicu filter instan ke seluruh tabel katalog.
-- **Tren Kreator per Dekade**: Area chart kurva gelombang yang memperlihatkan dinamika pertumbuhan musisi dari 1970-an hingga 2030-an.
-- **Komposisi Peran Musik**: Grafik batang bertumpuk (stacked bar) yang menguraikan rata-rata peran (performer, komposer, lirik, produser) pada top 7 genre.
-- **Segmentasi Donut Produktivitas**: Visualisasi proporsi pembagian bucket karya (`1`, `2-3`, `4-9`, `10+`, `0`).
-- **Panggung Kehormatan (Top 10 Leaderboard)**: Tabel musisi paling berpengaruh dengan pengalih kriteria ranking (*Karya Notable*, *Dampak Pengaruh*, *Total Karya*).
-- **Katalog Terfilter & Terpaginasi**: Pencarian nama instan (debounced 300ms), penyortiran kolom bolak-balik, badge filter aktif dengan tombol reset cepat.
-- **Modal Popup & Bottom Sheet Responsif**: Mengklik kreator membuka jendela profil mendalam yang memperlihatkan persentase kontribusi peran, riwayat tahun aktif, dan total sitasi musik.
-- **Adaptif Seluler (Mobile-First)**: Tabel katalog secara otomatis beralih menjadi daftar kartu yang nyaman disentuh di perangkat seluler (< 640px).
+- **Key Performance Indicators (KPIs)**: Kartu metrik total kreator, genre #1, era puncak, dan persentase musisi elit secara dinamis dari SQLite.
+- **4 Visualisasi Interaktif (Dark & Light Mode)**:
+  - *Distribusi Genre Teratas (Top 12 Bar)* — klik bar langsung memfilter katalog.
+  - *Tren Kreator per Dekade (Area Chart)* — kurva pertumbuhan 1970s–2030s.
+  - *Komposisi Rata-Rata Peran Musik (Stacked Bar)* — performer, komposer, lirik, produser pada top 7 genre.
+  - *Segmentasi Produktivitas Karya (Donut Chart)* — dinamis dari database, klik irisan untuk filter bucket.
+- **Panggung Kehormatan (Top 10 Leaderboard)**: Pengalih kriteria ranking (*Karya Notable*, *Dampak Pengaruh*, *Total Karya*) dengan profil detail lengkap saat diklik.
+- **Eksplorasi Katalog Server-Side & Export CSV**:
+  - Pencarian nama/nama panggung instan (debounced 300ms, aman dari wildcard SQL).
+  - Dropdown filter lengkap untuk **semua 27 genre**, **Bucket Karya**, dan **Variasi Peran (`0–4` peran)**.
+  - Penyortiran kolom bolak-balik dengan indikator arah (`↑`/`↓`), pilihan `20/50/100` baris per halaman.
+  - **Sinkronisasi URL Query Params** agar filter tahan refresh & link bisa langsung dibagikan.
+  - **Export CSV** untuk mengunduh seluruh hasil filter aktif (UTF-8 BOM, rapi saat dibuka di Microsoft Excel).
+- **Modal Profil Responsif**: Dialog di desktop & bottom sheet di mobile yang menampilkan metrik, distribusi kontribusi peran, dan metadata aktif.
+- **Dark & Light Mode Persisten**: Preferensi tema tersimpan di `localStorage` dengan kontras warna WCAG AA.
 
 ---
 
@@ -51,49 +58,36 @@ Proyek ini dikembangkan sebagai pemenuhan tugas mata kuliah **Business Intellige
 
 ```mermaid
 flowchart TD
-    XLSX["Analisis Kreator Musik Oceanus.xlsx"] -->|scripts/import.mjs| DB["data/oceanus.db (SQLite Embedded)"]
-    DB --> LIB["src/lib/db.ts (better-sqlite3 Singleton)"]
-    
-    subgraph API ["REST Route Handlers"]
+    XLSX["data/Analisis Kreator Musik Oceanus.xlsx"] -->|npm run import-data| DB["data/oceanus.db (SQLite Read-Only, Non-WAL)"]
+    DB --> LIB["src/lib/db.ts + src/lib/queries.ts"]
+
+    subgraph API ["Next.js REST Route Handlers + Cache-Control"]
         LIB --> A1["/api/stats"]
         LIB --> A2["/api/genre"]
         LIB --> A3["/api/trend"]
         LIB --> A4["/api/peran"]
         LIB --> A5["/api/leaderboard"]
         LIB --> A6["/api/kreator"]
+        LIB --> A7["/api/kreator/export (CSV)"]
+        LIB --> A8["/api/health"]
     end
-    
-    subgraph UI ["Komponen Klien Interaktif"]
+
+    subgraph UI ["Responsive React UI (Dark/Light Mode)"]
         A1 --> KPI["KpiSection"]
-        A2 & A3 & A4 --> CHARTS["ChartsSection (Recharts)"]
+        A1 & A2 & A3 & A4 --> CHARTS["ChartsSection (Recharts)"]
         A5 --> LEADER["LeaderboardSection"]
-        A6 --> TABLE["TableSection (TanStack)"]
-        TABLE & LEADER --> MODAL["KreatorModal (Detail Popup)"]
+        A6 & A7 --> TABLE["TableSection + Mobile Cards"]
+        TABLE & LEADER --> MODAL["KreatorModal"]
     end
 ```
-
----
-
-## 🎨 Sistem Desain Visual
-
-Mengadopsi tema **"Laut & Suara"** (*Deep Ocean & Analogue Resonance*):
-- **Palet Samudra**:
-  - Background Utama: `#060E1B` (Ocean 950)
-  - Card & Surface: `#0A1628` (Ocean 900) & `#0F2240` (Ocean 800)
-  - Interactive Accent: `#38BDF8` (Bioluminescent Cyan)
-  - Text: `#E2EAF2` (Primary Text) & `#E8D5B0` (Pale Sand Serif Accent)
-- **Tipografi**:
-  - *Hero & Display Numbers*: **DM Serif Display**
-  - *UI Body*: **Inter**
-  - *Data & Metrics*: **JetBrains Mono**
 
 ---
 
 ## 🛠️ Panduan Instalasi & Menjalankan Lokal
 
 ### Prasyarat
-- Node.js versi 18+ (disarankan Node.js 20 atau 22/24)
-- npm atau pnpm
+- Node.js versi **20** atau **22** (atau `24.x` untuk lokal)
+- npm
 
 ### Langkah Menjalankan:
 ```bash
@@ -104,20 +98,50 @@ cd dashboard-oceanus
 # 2. Pasang dependensi
 npm install
 
-# 3. Jalankan migrasi data (Excel -> SQLite)
+# 3. (Opsional) Bangun ulang SQLite dari Excel
 npm run import-data
-# Output: "✅ Berhasil mengimpor 11361 baris ke SQLite dalam ~400ms!"
 
 # 4. Jalankan server pengembangan
 npm run dev
 
-# 5. Buka peramban di http://localhost:3000
+# 5. Buka http://localhost:3000
 ```
 
-### Menjalankan Build Produksi:
+---
+
+## ☁️ Panduan Deployment ke Render
+
+Repositori ini sudah dilengkapi **`Dockerfile`** (multi-stage `node:22-slim`, mode Next.js `standalone`) dan **`render.yaml`** (Render Blueprint, region `singapore`, health check `/api/health`).
+
+### Opsi 1 — Deploy 1-Klik via Render Blueprint (Disarankan)
+1. Push perubahan terbaru ke repositori GitHub Anda.
+2. Buka [Render Dashboard](https://dashboard.render.com/) → klik **New +** → pilih **Blueprint**.
+3. Hubungkan repositori `dashboard-oceanus` — Render otomatis membaca `render.yaml`.
+4. Klik **Apply** dan tunggu proses Docker build selesai (~2–4 menit).
+
+### Opsi 2 — Deploy Manual Web Service (Docker)
+1. Buka Render Dashboard → **New +** → **Web Service** → pilih repo `dashboard-oceanus`.
+2. Pastikan **Language / Runtime** = `Docker`, **Region** = `Singapore`, **Instance Type** = `Free`.
+3. Isi **Health Check Path** = `/api/health`, lalu klik **Deploy Web Service**.
+
+> **Catatan Free Tier Render**: Layanan gratis otomatis *sleep* setelah 15 menit tanpa trafik (cold start 30–60 detik saat pertama dibuka kembali). Karena database `data/oceanus.db` bersifat read-only dan tertanam di Docker image, seluruh 11.361 data selalu aman dan utuh setiap kali container menyala kembali.
+
+---
+
+## ✅ Pengujian & Validasi
+
 ```bash
+# Validasi TypeScript
+npx tsc --noEmit
+
+# Validasi ESLint
+npm run lint
+
+# Build produksi standalone
 npm run build
-npm start
+
+# Jalankan automated test suite (integritas SQLite + seluruh endpoint API + Export CSV)
+npm test
 ```
 
 ---
@@ -126,56 +150,29 @@ npm start
 
 ```
 dashboard-oceanus/
-├── .kiro/
-│   ├── steering/               # Pedoman permanen produk & arsitektur
-│   │   ├── product.md
-│   │   ├── tech.md
-│   │   └── structure.md
-│   └── specs/dashboard/        # Spesifikasi fitur Kiro-style
-│       ├── requirements.md     # EARS syntax & kriteria penerimaan
-│       ├── design.md           # DDL, ERD, sequence diagram
-│       └── tasks.md            # Checklist implementasi atomik
+├── .kiro/                      # Steering & spesifikasi Spec-Driven Development
 ├── data/
-│   ├── Analisis Kreator Musik Oceanus.xlsx  # Dataset sumber asli
-│   └── oceanus.db                          # Database SQLite terindeks
+│   ├── Analisis Kreator Musik Oceanus.xlsx
+│   └── oceanus.db              # SQLite read-only non-WAL terindeks
+├── public/
+│   └── robots.txt
 ├── scripts/
-│   └── import.mjs              # Script ETL migrasi data otomatis
+│   └── import.mjs              # ETL Excel -> SQLite portable
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx          # Konfigurasi font & metadata
-│   │   ├── page.tsx            # Halaman orkestrasi dashboard utama
-│   │   ├── globals.css         # Design tokens & utilitas CSS
-│   │   └── api/                # Handlers endpoint data
-│   │       ├── stats/route.ts
-│   │       ├── genre/route.ts
-│   │       ├── trend/route.ts
-│   │       ├── peran/route.ts
-│   │       ├── leaderboard/route.ts
-│   │       └── kreator/route.ts
-│   ├── components/
-│   │   ├── layout/             # Navbar & FilterBar
-│   │   ├── sections/           # KpiSection, ChartsSection, Leaderboard, TableSection
-│   │   ├── charts/             # Recharts components (Bar, Area, Donut, Stacked)
-│   │   ├── table/              # KreatorTable & KreatorCard
-│   │   ├── modal/              # KreatorModal detail popup
-│   │   └── ui/                 # StatCard, Badge, Spinner, EmptyState
-│   ├── hooks/                  # useFilters & useDebounce
-│   └── lib/                    # db.ts (SQLite) & types.ts (TypeScript interfaces)
-├── RENCANA.md                  # Dokumen rencana awal komprehensif
+│   │   ├── api/                # stats, genre, trend, peran, leaderboard, kreator, export, health
+│   │   ├── globals.css         # Design tokens Dark & Light Mode
+│   │   ├── icon.svg            # Custom SVG favicon Oceanus
+│   │   ├── layout.tsx          # Fonts, anti-FOUC theme script, OG metadata
+│   │   └── page.tsx            # Halaman dashboard utama
+│   ├── components/             # charts, layout, modal, sections, table, ui
+│   ├── hooks/                  # useFilters (URL sync) & useDebounce
+│   └── lib/                    # db.ts, queries.ts, types.ts
+├── tests/
+│   └── api-and-db.test.mjs     # Automated DB & API test suite
+├── Dockerfile                  # Multi-stage Docker build (node:22-slim)
+├── .dockerignore
+├── render.yaml                 # Blueprint Render (Singapore, /api/health)
+├── next.config.ts              # standalone, tracing, security headers
 └── package.json
 ```
-
----
-
-## 🎯 Metodologi Spec-Driven (Kiro)
-
-Pengembangan dashboard ini menerapkan metodologi **Spec-Driven Development**:
-1. **Fase 0 (Steering)**: Mengunci visi produk, personas, batasan teknologi, dan layout folder di `.kiro/steering/`.
-2. **Fase 1 (Requirements)**: Menyusun kebutuhan fungsional dengan sintaks EARS (*Ubiquitous, Event-driven, State-driven*).
-3. **Fase 2 (Design)**: Memetakan skema database relasional SQLite, indeks query, dan diagram alur Mermaid.
-4. **Fase 3 (Tasks)**: Menyusun daftar tugas atomik yang terstruktur di `.kiro/specs/dashboard/tasks.md`.
-5. **Fase 4 (Execution)**: Menulis kode dan melakukan verifikasi bertahap.
-
----
-
-Dikembangkan untuk mata kuliah Business Intelligence • 2026.

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import type { Kreator } from '@/lib/types';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 interface KreatorTableProps {
   data: Kreator[];
@@ -39,11 +39,17 @@ export function KreatorTable({
           <tr className="border-b border-ocean-800 text-[11px] font-mono text-text-secondary uppercase tracking-wider">
             {columns.map((col) => {
               const isSorted = sortCol === col.key;
+              const ariaSort = isSorted
+                ? sortDir === 'asc'
+                  ? 'ascending'
+                  : 'descending'
+                : 'none';
               return (
                 <th
                   key={col.key}
+                  aria-sort={ariaSort}
                   onClick={() => onSort(col.key)}
-                  className={`py-3 px-3 cursor-pointer hover:text-signal transition-colors ${
+                  className={`py-3 px-3 cursor-pointer hover:text-signal transition-colors select-none ${
                     col.align === 'right'
                       ? 'text-right'
                       : col.align === 'center'
@@ -60,12 +66,16 @@ export function KreatorTable({
                         : 'justify-start'
                     }`}
                   >
-                    <span>{col.label}</span>
-                    <ArrowUpDown
-                      className={`w-3 h-3 transition-opacity ${
-                        isSorted ? 'opacity-100 text-signal' : 'opacity-40'
-                      }`}
-                    />
+                    <span className={isSorted ? 'text-signal' : ''}>{col.label}</span>
+                    {isSorted ? (
+                      sortDir === 'asc' ? (
+                        <ArrowUp className="w-3 h-3 text-signal" />
+                      ) : (
+                        <ArrowDown className="w-3 h-3 text-signal" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="w-3 h-3 opacity-40" />
+                    )}
                   </div>
                 </th>
               );
@@ -92,7 +102,7 @@ export function KreatorTable({
                   <div>{item.nama}</div>
                   {item.nama_panggung && (
                     <div className="text-[10px] text-text-secondary italic">
-                      "{item.nama_panggung}"
+                      &quot;{item.nama_panggung}&quot;
                     </div>
                   )}
                 </td>
@@ -104,13 +114,13 @@ export function KreatorTable({
                 <td className="py-3 px-3 text-right font-mono font-semibold text-sand">
                   {item.total_karya}
                 </td>
-                <td className="py-3 px-3 text-right font-mono text-amber-300">
+                <td className="py-3 px-3 text-right font-mono text-metric-notable">
                   {item.karya_notable}
                 </td>
                 <td className="py-3 px-3 text-right font-mono text-signal">
                   {item.pengaruh_diterima}
                 </td>
-                <td className="py-3 px-3 text-right font-mono text-emerald-300">
+                <td className="py-3 px-3 text-right font-mono text-metric-cited">
                   {item.karya_dirujuk}
                 </td>
                 <td className="py-3 px-3 text-center font-mono text-text-muted text-[11px]">

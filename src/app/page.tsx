@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { KpiSection } from '@/components/sections/KpiSection';
 import { ChartsSection } from '@/components/sections/ChartsSection';
@@ -22,23 +22,49 @@ import { Waves, Sparkles } from 'lucide-react';
 export default function DashboardPage() {
   const [isDark, setIsDark] = useState(true);
 
-  // Sync theme class to <html> element
+  // Baca preferensi tema dari localStorage setelah mount (sinkron dengan init script di layout.tsx)
   useEffect(() => {
-    const root = document.documentElement;
-    if (isDark) {
-      root.classList.remove('light');
-    } else {
-      root.classList.add('light');
+    try {
+      const saved = window.localStorage.getItem('oceanus-theme');
+      const nextDark = saved !== 'light';
+      setIsDark(nextDark);
+    } catch {
+      // Abaikan jika localStorage tidak tersedia
     }
-  }, [isDark]);
+  }, []);
+
+  const handleToggleTheme = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev;
+      const root = document.documentElement;
+      if (next) {
+        root.classList.remove('light');
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+        root.classList.add('light');
+      }
+      try {
+        window.localStorage.setItem('oceanus-theme', next ? 'dark' : 'light');
+      } catch {
+        // Abaikan jika storage diblokir
+      }
+      return next;
+    });
+  }, []);
 
   const {
     filters,
-    setGenre,
-    setBucket,
+    hydrated,
+    toggleGenre,
+    setGenreDirect,
+    toggleBucket,
+    setBucketDirect,
+    setPeran,
     setSearch,
     setSorting,
     setPage,
+    setLimit,
     resetFilters,
   } = useFilters();
 
@@ -57,82 +83,158 @@ export default function DashboardPage() {
     pages: 1,
   });
 
-  // UI states
+  // UI & Error states
   const [statsLoading, setStatsLoading] = useState(true);
   const [chartsLoading, setChartsLoading] = useState(true);
+  const [initialError, setInitialError] = useState<string | null>(null);
+  const [initialReloadTick, setInitialReloadTick] = useState(0);
+
   const [tableLoading, setTableLoading] = useState(true);
+  const [tableError, setTableError] = useState<string | null>(null);
+  const [tableReloadTick, setTableReloadTick] = useState(0);
+
   const [selectedKreator, setSelectedKreator] = useState<Kreator | null>(null);
 
-  // 1. Fetch static KPI & Charts data once on load
+  const retryInitial = useCallback(() => {
+    setInitialReloadTick((prev) => prev + 1);
+  }, []);
+
+  const retryTable = useCallback(() => {
+    setTableReloadTick((prev) => prev + 1);
+  }, []);
+
+  // 1. Fetch static KPI & Charts data
   useEffect(() => {
+    const controller = new AbortController();
+
     async function loadInitialData() {
       try {
         setStatsLoading(true);
         setChartsLoading(true);
+        setInitialError(null);
 
         const [statsRes, genreRes, trendRes, peranRes] = await Promise.all([
-          fetch('/api/stats'),
-          fetch('/api/genre'),
-          fetch('/api/trend'),
-          fetch('/api/peran'),
+          fetch('/api/stats', { signal: controller.signal }),
+          fetch('/api/genre', { signal: controller.signal }),
+          fetch('/api/trend', { signal: controller.signal }),
+          fetch('/api/peran', { signal: controller.signal }),
         ]);
 
-        if (statsRes.ok) setStats(await statsRes.json());
-        if (genreRes.ok) setGenres(await genreRes.json());
-        if (trendRes.ok) setTrends(await trendRes.json());
-        if (peranRes.ok) setRoles(await peranRes.json());
-      } catch (err) {
+        if (!statsRes.ok || !genreRes.ok || !trendRes.ok || !peranRes.ok) {
+          throw new Error('Gagal mengambil sebagian data analitik.');
+        }
+
+        const [statsJson, genreJson, trendJson, peranJson] = await Promise.all([
+          statsRes.json() as Promise<StatsResponse>,
+          genreRes.json() as Promise<GenreDistribution[]>,
+          trendRes.json() as Promise<TrendDecade[]>,
+          peranRes.json() as Promise<RoleDistribution[]>,
+        ]);
+
+        setStats(statsJson);
+        setGenres(genreJson);
+        setTrends(trendJson);
+        setRoles(peranJson);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') return;
         console.error('Error fetching initial dashboard data:', err);
+        setInitialError('Gagal memuat data statistik & visualisasi. Periksa koneksi server.');
       } finally {
-        setStatsLoading(false);
-        setChartsLoading(false);
+        if (!controller.signal.aborted) {
+          setStatsLoading(false);
+          setChartsLoading(false);
+        }
       }
     }
+
     loadInitialData();
-  }, []);
+    return () => controller.abort();
+  }, [initialReloadTick]);
 
   // 2. Fetch paginated & filtered kreators whenever filters or debounced search changes
   useEffect(() => {
+    if (!hydrated) return;
+    const controller = new AbortController();
+
     async function fetchKreators() {
       setTableLoading(true);
+      setTableError(null);
       try {
         const params = new URLSearchParams({
           page: String(filters.page),
-          limit: '20',
+          limit: String(filters.limit),
           genre: filters.genre,
           bucket: filters.bucket,
+          peran: filters.peran,
           search: debouncedSearch,
           sort: filters.sort,
           dir: filters.dir,
         });
 
-        const res = await fetch(`/api/kreator?${params.toString()}`);
-        if (res.ok) {
-          const json = await res.json();
-          setKreatorData(json);
+        const res = await fetch(`/api/kreator?${params.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
         }
-      } catch (err) {
+        const json = (await res.json()) as PaginatedKreatorResponse;
+        setKreatorData(json);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === 'AbortError') return;
         console.error('Error fetching kreators list:', err);
+        setTableError('Gagal memuat daftar kreator. Silakan coba lagi.');
       } finally {
-        setTableLoading(false);
+        if (!controller.signal.aborted) {
+          setTableLoading(false);
+        }
       }
     }
+
     fetchKreators();
+    return () => controller.abort();
   }, [
+    hydrated,
     filters.page,
+    filters.limit,
     filters.genre,
     filters.bucket,
+    filters.peran,
+    filters.sort,
+    filters.dir,
+    debouncedSearch,
+    tableReloadTick,
+  ]);
+
+  const exportUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    if (filters.genre) params.set('genre', filters.genre);
+    if (filters.bucket) params.set('bucket', filters.bucket);
+    if (filters.peran) params.set('peran', filters.peran);
+    if (debouncedSearch.trim()) params.set('search', debouncedSearch.trim());
+    params.set('sort', filters.sort);
+    params.set('dir', filters.dir);
+    return `/api/kreator/export?${params.toString()}`;
+  }, [
+    filters.genre,
+    filters.bucket,
+    filters.peran,
     filters.sort,
     filters.dir,
     debouncedSearch,
   ]);
+
+  const heroTotalLabel = (stats?.total_kreator ?? 11361).toLocaleString('id-ID');
+  const heroMinYear = stats?.thn_pertama_min ?? 1975;
+  const heroMaxYear = stats?.thn_terakhir_max ?? 2040;
+  const heroTopGenre = stats?.genre_terbanyak ?? 'Dream Pop';
 
   return (
     <div className="min-h-screen bg-ocean-950 flex flex-col font-sans transition-colors duration-300">
       {/* Top Navbar */}
       <Navbar
         isDark={isDark}
-        onToggleTheme={() => setIsDark((prev) => !prev)}
+        onToggleTheme={handleToggleTheme}
+        totalKreator={stats?.total_kreator}
       />
 
       {/* Hero Sub-Header */}
@@ -148,19 +250,9 @@ export default function DashboardPage() {
                 Ekosistem Kreator Musik Oceanus
               </h1>
               <p className="text-xs sm:text-sm text-text-secondary mt-1 max-w-2xl leading-relaxed">
-                Analisis mendalam terhadap 11.361 kreator musik dari kurun waktu 1975 hingga 2040.
-                Eksplorasi dominasi genre Dream Pop, tren lonjakan era 2020-an, serta profil para musisi paling berpengaruh.
+                Analisis mendalam terhadap {heroTotalLabel} kreator musik dari kurun waktu {heroMinYear} hingga {heroMaxYear}.
+                Eksplorasi dominasi genre {heroTopGenre}, tren lonjakan era digital, serta profil para musisi paling berpengaruh.
               </p>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-lg bg-ocean-900/80 border border-ocean-800 text-right font-mono transition-colors">
-                <div className="text-[10px] text-text-secondary uppercase">Status Data</div>
-                <div className="text-xs text-signal flex items-center gap-1.5 justify-end mt-0.5">
-                  <span className="w-2 h-2 rounded-full bg-signal animate-pulse" />
-                  11.361 Rekor Aktif
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -169,17 +261,24 @@ export default function DashboardPage() {
       {/* Main Dashboard Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* KPI Section */}
-        <KpiSection stats={stats} loading={statsLoading} />
+        <KpiSection
+          stats={stats}
+          loading={statsLoading}
+          error={initialError}
+          onRetry={retryInitial}
+        />
 
         {/* 2x2 Charts Section */}
         <ChartsSection
           genres={genres}
           trends={trends}
           roles={roles}
+          buckets={stats?.buckets ?? []}
           selectedGenre={filters.genre}
           selectedBucket={filters.bucket}
-          onSelectGenre={setGenre}
-          onSelectBucket={setBucket}
+          onSelectGenre={toggleGenre}
+          onSelectBucket={toggleBucket}
+          isDark={isDark}
           loading={chartsLoading}
         />
 
@@ -190,23 +289,35 @@ export default function DashboardPage() {
         <TableSection
           data={kreatorData.data}
           total={kreatorData.total}
+          totalAll={stats?.total_kreator}
           page={kreatorData.page}
-          limit={kreatorData.limit}
+          limit={filters.limit}
           pages={kreatorData.pages}
+          genres={genres}
+          buckets={stats?.buckets ?? []}
           selectedGenre={filters.genre}
           selectedBucket={filters.bucket}
+          selectedPeran={filters.peran}
           search={filters.search}
           onSearchChange={setSearch}
+          onSelectGenreDirect={setGenreDirect}
+          onSelectBucketDirect={setBucketDirect}
+          onSelectPeran={setPeran}
           sortCol={filters.sort}
           sortDir={filters.dir}
           onSort={setSorting}
           onPageChange={setPage}
-          onClearGenre={() => setGenre('')}
-          onClearBucket={() => setBucket('')}
+          onLimitChange={setLimit}
+          onClearGenre={() => setGenreDirect('')}
+          onClearBucket={() => setBucketDirect('')}
+          onClearPeran={() => setPeran('')}
           onClearSearch={() => setSearch('')}
           onResetAll={resetFilters}
           onSelectKreator={(k) => setSelectedKreator(k)}
+          exportUrl={exportUrl}
           loading={tableLoading}
+          error={tableError}
+          onRetry={retryTable}
         />
       </main>
 
@@ -221,7 +332,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-center gap-2">
           <div className="flex items-center gap-2 text-text-secondary">
             <Waves className="w-4 h-4 text-signal" />
-            <span>Dashboard Analisis Kreator Musik Oceanus • Semester 5 Business Intelligence</span>
+            <span>Dashboard Analisis Kreator Musik Oceanus</span>
           </div>
         </div>
       </footer>

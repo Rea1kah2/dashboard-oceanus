@@ -28,7 +28,7 @@ export function KreatorCard({ kreator, onSelect }: KreatorCardProps) {
           {kreator.nama}
           {kreator.nama_panggung && (
             <span className="text-xs text-text-secondary italic ml-1">
-              "{kreator.nama_panggung}"
+              &quot;{kreator.nama_panggung}&quot;
             </span>
           )}
         </div>
@@ -38,7 +38,7 @@ export function KreatorCard({ kreator, onSelect }: KreatorCardProps) {
           </span>
           <span>•</span>
           <span>
-            Notable: <strong className="text-amber-300">{kreator.karya_notable}</strong>
+            Notable: <strong className="text-metric-notable">{kreator.karya_notable}</strong>
           </span>
           <span>•</span>
           <span>

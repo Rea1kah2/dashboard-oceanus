@@ -22,11 +22,13 @@ if (!fs.existsSync(excelPath)) {
   process.exit(1);
 }
 
-// Hapus file db lama jika ada
-if (fs.existsSync(dbPath)) {
-  fs.unlinkSync(dbPath);
-  console.log('🧹 Menghapus database lama...');
+// Hapus file db lama beserta sidecar WAL/SHM jika ada
+for (const file of [dbPath, `${dbPath}-wal`, `${dbPath}-shm`]) {
+  if (fs.existsSync(file)) {
+    fs.unlinkSync(file);
+  }
 }
+console.log('🧹 Membersihkan database & file sementara lama...');
 
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
@@ -55,13 +57,14 @@ db.exec(`
     bucket_karya      TEXT
   );
 
-  CREATE INDEX idx_kreator_genre   ON kreator(genre_utama);
-  CREATE INDEX idx_kreator_bucket  ON kreator(bucket_karya);
-  CREATE INDEX idx_kreator_thn     ON kreator(thn_pertama);
-  CREATE INDEX idx_kreator_notable ON kreator(karya_notable DESC);
-  CREATE INDEX idx_kreator_karya   ON kreator(total_karya DESC);
+  CREATE INDEX idx_kreator_genre    ON kreator(genre_utama);
+  CREATE INDEX idx_kreator_bucket   ON kreator(bucket_karya);
+  CREATE INDEX idx_kreator_peran    ON kreator(n_peran);
+  CREATE INDEX idx_kreator_thn      ON kreator(thn_pertama);
+  CREATE INDEX idx_kreator_notable  ON kreator(karya_notable DESC);
+  CREATE INDEX idx_kreator_karya    ON kreator(total_karya DESC);
   CREATE INDEX idx_kreator_pengaruh ON kreator(pengaruh_diterima DESC);
-  CREATE INDEX idx_kreator_nama    ON kreator(nama COLLATE NOCASE);
+  CREATE INDEX idx_kreator_nama     ON kreator(nama COLLATE NOCASE);
 `);
 
 console.log('📖 Membaca workbook Excel...');
@@ -144,11 +147,18 @@ const startTime = Date.now();
 insertMany(rawData);
 const duration = Date.now() - startTime;
 
+// Finalisasi agar menjadi single-file portable read-only (non-WAL) untuk Docker/Render
+db.pragma('wal_checkpoint(TRUNCATE)');
+db.pragma('journal_mode = DELETE');
+db.pragma('optimize');
+db.exec('VACUUM');
+
 const countRow = db.prepare('SELECT COUNT(*) as total FROM kreator').get();
-console.log(`✅ Berhasil mengimpor ${countRow.total} baris ke SQLite dalam ${duration}ms!`);
+const mode = db.pragma('journal_mode', { simple: true });
+console.log(`✅ Berhasil mengimpor ${countRow.total} baris ke SQLite dalam ${duration}ms (journal_mode=${mode})!`);
 
 // Cek sampel
-const sample = db.prepare('SELECT * FROM kreator ORDER BY total_karya DESC LIMIT 3').all();
+const sample = db.prepare('SELECT id_kreator, nama, genre_utama, total_karya, karya_notable FROM kreator ORDER BY total_karya DESC LIMIT 3').all();
 console.log('🏆 Top 3 kreator by total_karya:');
 console.table(sample);
 
