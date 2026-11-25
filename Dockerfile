@@ -26,10 +26,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
+ENV PORT=10000
 
-RUN groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs nextjs
+RUN groupadd --gid 1001 nodejs \
+  && useradd --uid 1001 --gid nodejs --no-create-home nextjs \
+  && mkdir -p /app/data \
+  && chown -R nextjs:nodejs /app/data
 
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -38,6 +40,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/data/oceanus.db ./data/oceanus.db
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 10000
 
-CMD ["node", "server.js"]
+CMD ["sh", "-c", "HOSTNAME=0.0.0.0 PORT=${PORT:-10000} exec node server.js"]

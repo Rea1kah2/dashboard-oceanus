@@ -11,3 +11,7 @@ services:
         value: production
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
+      - key: HOSTNAME
+        value: 0.0.0.0
+      - key: PORT
+        value: "10000"
